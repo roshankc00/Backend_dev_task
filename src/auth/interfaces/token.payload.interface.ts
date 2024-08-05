@@ -1,5 +1,5 @@
 interface TokenPayload {
-  _id: number;
+  _id: string;
   role: string;
   email: string;
   name: string;

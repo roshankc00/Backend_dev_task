@@ -6,6 +6,7 @@ import { CustomLoggerModule } from './common/logger/logger.module';
 import { ConfigModule } from '@nestjs/config';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
+import { ChatsModule } from './chats/chats.module';
 import * as Joi from 'joi';
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import * as Joi from 'joi';
     CustomLoggerModule,
     UsersModule,
     AuthModule,
+    ChatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

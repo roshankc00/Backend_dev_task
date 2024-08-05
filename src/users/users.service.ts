@@ -75,6 +75,10 @@ export class UsersService {
     };
   }
 
+  async getUserWithEmail(email: string) {
+    return this.usersRepository.findOne({ email });
+  }
+
   private hashPassword = async (password: string): Promise<string> => {
     return await bcrypt.hash(password, 10);
   };
