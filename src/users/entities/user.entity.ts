@@ -18,6 +18,9 @@ export class User extends AbstractEntity {
 
   @Prop({ type: String, enum: USER_ROLE_ENUM, default: USER_ROLE_ENUM.USER })
   role: USER_ROLE_ENUM;
+
+  @Prop({ default: false })
+  isVerfied: boolean;
 }
 
 export const UsersSchema = SchemaFactory.createForClass(User);

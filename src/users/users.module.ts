@@ -4,10 +4,12 @@ import { UsersController } from './users.controller';
 import { DatabaseModule } from 'src/common/database/database.module';
 import { User, UsersSchema } from './entities/user.entity';
 import { UsersRepository } from './repositories/users.repository';
+import { EmailModule } from 'src/common/email/email.module';
 
 @Module({
   imports: [
     DatabaseModule.forFeature([{ name: User.name, schema: UsersSchema }]),
+    EmailModule,
   ],
   controllers: [UsersController],
   providers: [UsersService, UsersRepository],
