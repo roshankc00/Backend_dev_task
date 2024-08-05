@@ -23,7 +23,7 @@ export class ChatsController {
     return this.chatsService.create(createChatDto);
   }
 
-  @Get('user/all')
+  @Get('mine/all')
   @UseGuards(JWtAuthGuard)
   findAll(@Currentuser() payload: TokenPayload) {
     return this.chatsService.findAll(payload);

@@ -1,11 +1,7 @@
 import { IsNotEmpty, IsString } from 'class-validator';
 
-export class CreateMessageDto {
+export class JoinAndLeaveRoomDto {
   @IsNotEmpty()
   @IsString()
   chatId: string;
-
-  @IsNotEmpty()
-  @IsString()
-  content: string;
 }
