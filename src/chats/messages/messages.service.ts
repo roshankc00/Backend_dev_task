@@ -1,11 +1,22 @@
 import { Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-
+import { MessagesRepository } from './repositories/message.repository';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+import { ChatsService } from '../chats.service';
 @Injectable()
 export class MessagesService {
-  create(createMessageDto: CreateMessageDto) {
-    return 'This action adds a new message';
+  constructor(
+    private readonly messagesRepository: MessagesRepository,
+    private readonly chatsService: ChatsService,
+  ) {}
+  async create(createMessageDto: CreateMessageDto) {
+    const chatExits = await this.chatsService.findOne(createMessageDto.chatId);
+    await this.messagesRepository.create({
+      chatId: new MongooseSchema.Types.ObjectId(createMessageDto.chatId),
+      content: createMessageDto.content,
+      senderId: new MongooseSchema.Types.ObjectId(createMessageDto.senderId),
+    });
   }
 
   findAll() {

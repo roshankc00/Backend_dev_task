@@ -11,7 +11,7 @@ export class Message extends AbstractEntity {
   senderId: MongooseSchema.Types.ObjectId;
 
   @Prop()
-  text: string;
+  content: string;
 }
 
 export const MessageSchema = SchemaFactory.createForClass(Message);

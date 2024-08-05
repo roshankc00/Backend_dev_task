@@ -13,6 +13,9 @@ import { Server, Socket } from 'socket.io';
 import { MessagesService } from './messages.service';
 import { JoinAndLeaveRoomDto } from './dto/join-leave-room.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Redis } from 'ioredis';
+import { ConfigService } from '@nestjs/config';
 
 @WebSocketGateway({
   cors: '*',
@@ -21,7 +24,26 @@ export class SocketGatewayGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
   @WebSocketServer() server: Server;
-  constructor(private readonly messageService: MessagesService) {}
+  private publisher: Redis;
+  private subscriber: Redis;
+  constructor(
+    private readonly messageService: MessagesService,
+    private readonly eventEmitter: EventEmitter2,
+    private readonly configService: ConfigService,
+  ) {
+    this.publisher = new Redis(this.configService.get('REDIS_URI'));
+    this.subscriber = new Redis(this.configService.get('REDIS_URI'));
+
+    this.subscriber.subscribe('chat_messages');
+    this.subscriber.on('message', (channel, message) => {
+      if (channel === 'chat_messages') {
+        const data = JSON.parse(message);
+        this.server
+          .to(`chat-${data?.chatId}`)
+          .emit('receive_message', JSON.parse(message));
+      }
+    });
+  }
 
   handleConnection(client: Socket, ...args: any[]) {
     console.log('client connected');
@@ -48,13 +70,18 @@ export class SocketGatewayGateway
 
   @SubscribeMessage('send_message')
   async handleMessage(
-    @MessageBody() { chatId, content }: CreateMessageDto,
+    @MessageBody() { chatId, content, senderId }: CreateMessageDto,
     @ConnectedSocket() socket: Socket,
   ) {
-    this.server.to(`chat-${chatId}`).emit('receive_message', {
-      chatId,
-      content,
-    });
+    this.eventEmitter.emit('message_create', { chatId, content, senderId });
+    await this.publisher.publish(
+      'chat_messages',
+      JSON.stringify({
+        chatId,
+        content,
+        senderId,
+      }),
+    );
   }
 
   @SubscribeMessage('typing')
