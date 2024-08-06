@@ -16,6 +16,8 @@ import * as jwt from 'jsonwebtoken';
 import { ConfigService } from '@nestjs/config';
 import { IVerififyEmail } from 'src/auth/interfaces/verification-email.interface';
 import { EmailVerificationDto } from './dto/EmailVerification.Dto';
+import { Request } from 'express';
+import { set } from 'mongoose';
 @Injectable()
 export class UsersService {
   constructor(
@@ -37,8 +39,14 @@ export class UsersService {
       role: USER_ROLE_ENUM.USER,
       isVerfied: false,
     });
-    const { activationcode, activationtoken } =
-      this.createActivationToken(user);
+    const { activationtoken } = this.createActivationToken(user);
+    await this.emailService.sendVerificationEmail({
+      subject: 'Email Verification',
+      email: user.email,
+      name: user.name,
+      url: `${this.configService.getOrThrow('CLIENT_URL')}/login?token=${activationtoken}`,
+      template: 'emailVerification.ejs',
+    });
     return {
       success: true,
       message: USER_CONTANTS.REGISTERED,
@@ -46,66 +54,28 @@ export class UsersService {
     };
   }
 
-  async verifyUserEmail(emailVerificationDto: EmailVerificationDto) {
-    let payload: EmailVerificationTokenPayload;
+  async verifyUserEmailEmail(req: Request) {
+    const token = req.params.token;
+    const payload = jwt.verify(
+      token,
+      this.configService.getOrThrow('ACTIVATION_SECRET'),
+    ) as { email: string };
 
-    try {
-      payload = jwt.verify(
-        emailVerificationDto.activationToken,
-        this.configService.get('ACTIVATION_SECRET') as jwt.Secret,
-      ) as EmailVerificationTokenPayload;
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        throw new BadRequestException('Token has expired');
-      }
-      throw new BadRequestException('Invalid token');
+    if (payload?.email) {
+      return await this.usersRepository.findOneAndUpdate(
+        { email: payload.email },
+        { $set: { isVerfied: true } },
+      );
+    } else {
+      throw new BadRequestException();
     }
-
-    if (!payload) {
-      throw new BadRequestException('Invalid token');
-    }
-
-    if (payload.activationcode !== emailVerificationDto.activationCode) {
-      throw new BadRequestException('Invalid activation code');
-    }
-
-    const user = await this.usersRepository.findOne({
-      _id: payload.userId,
-      email: payload.email,
-    });
-
-    if (!user) {
-      throw new BadRequestException('User not found');
-    }
-    if (user.isVerfied) {
-      throw new BadRequestException('user already verified');
-    }
-
-    await this.usersRepository.findOneAndUpdate(
-      {
-        _id: payload.userId,
-        email: payload.email,
-      },
-      {
-        $set: {
-          isVerfied: true,
-        },
-      },
-    );
-
-    return {
-      success: true,
-      message: 'Email verified successfully',
-    };
   }
 
-  private createActivationToken(user: User): IActivationToken {
-    const activationcode = Math.floor(1000 + Math.random() * 9000).toString();
+  private createActivationToken(user: User) {
     const activationtoken = jwt.sign(
       {
         userId: user._id,
         email: user.email,
-        activationcode,
       },
       this.configService.get('ACTIVATION_SECRET') as jwt.Secret,
       {
@@ -113,7 +83,7 @@ export class UsersService {
       },
     );
 
-    return { activationtoken, activationcode };
+    return { activationtoken };
   }
 
   async remove(id: string): Promise<ISuccessAndMessageResponse> {

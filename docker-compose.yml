@@ -1,14 +1,11 @@
 version: '3.9'
 services:
-  app:
-    build:
-      context: .
-      dockerfile: /Dockerfile
-      target: development
-    command: npm run start:dev
-    env_file:
-      - /.env
+  redis:
+    container_name: redis_container
+    image: redis:alpine
+    restart: always
     ports:
-      - '4000:4000'
+      - '6379:6379'
+    command: redis-server --loglevel warning
     volumes:
-      - .:/user/src/app
+      - ./docker-volumes/cache:/data

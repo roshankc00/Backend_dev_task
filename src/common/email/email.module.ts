@@ -11,13 +11,6 @@ import { MessageConsumer } from './processor/constant/email.consumer';
 @Global()
 @Module({
   imports: [
-    BullModule.forRootAsync({
-      imports: [ConfigModule],
-      useFactory: async (configService: ConfigService) => ({
-        redis: configService.get('REDIS_URI'),
-      }),
-      inject: [ConfigService],
-    }),
     MailerModule.forRootAsync({
       useFactory: async (config: ConfigService) => ({
         transport: {
@@ -32,7 +25,7 @@ import { MessageConsumer } from './processor/constant/email.consumer';
           from: 'Chatter App',
         },
         template: {
-          dir: join(__dirname, '../../../../email-templates'),
+          dir: join(__dirname, '../../../email-templates'),
           adapter: new EjsAdapter(),
           options: {
             strict: false,
