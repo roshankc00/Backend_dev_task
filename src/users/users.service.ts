@@ -71,7 +71,7 @@ export class UsersService {
     }
   }
 
-  private createActivationToken(user: User) {
+  private createActivationToken(user: User): { activationtoken: string } {
     const activationtoken = jwt.sign(
       {
         userId: user._id,
@@ -130,7 +130,7 @@ export class UsersService {
     };
   }
 
-  async getUserWithEmail(email: string) {
+  async getUserWithEmail(email: string): Promise<User> {
     return this.usersRepository.findOne({ email });
   }
 

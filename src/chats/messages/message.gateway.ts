@@ -32,8 +32,14 @@ export class SocketGatewayGateway
     private readonly eventEmitter: EventEmitter2,
     private readonly configService: ConfigService,
   ) {
-    this.publisher = new Redis(this.configService.get('REDIS_URI'));
-    this.subscriber = new Redis(this.configService.get('REDIS_URI'));
+    this.publisher = new Redis({
+      host: this.configService.get('REDIS_HOST'),
+      port: this.configService.get('REDIS_PORT'),
+    });
+    this.subscriber = new Redis({
+      host: this.configService.get('REDIS_HOST'),
+      port: this.configService.get('REDIS_PORT'),
+    });
 
     this.subscriber.subscribe('chat_messages');
     this.subscriber.on('message', (channel, message) => {
@@ -97,7 +103,7 @@ export class SocketGatewayGateway
       JSON.stringify({
         chatId,
         content,
-        user,
+        senderInfo: user,
       }),
     );
   }
@@ -107,9 +113,11 @@ export class SocketGatewayGateway
     @MessageBody() { chatId, isTyping }: { chatId: string; isTyping: boolean },
     @ConnectedSocket() socket: Socket,
   ) {
+    const user = socket.data.user;
     socket.to(`chat-${chatId}`).emit('typing', {
       userId: socket.id,
       isTyping,
+      typerInfo: user,
     });
   }
 }

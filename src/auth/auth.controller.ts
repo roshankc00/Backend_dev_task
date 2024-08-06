@@ -17,6 +17,7 @@ import { Currentuser } from 'src/common/decorators/currentUser.decorator';
 import { Response } from 'express';
 import { LoginUserDto } from './dto/login.dto';
 import { JWtAuthGuard } from './guards/jwt.auth.guard';
+import { User } from 'src/users/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
@@ -41,7 +42,7 @@ export class AuthController {
 
   @Get('me')
   @UseGuards(JWtAuthGuard)
-  async getUser(@Currentuser() payload: TokenPayload) {
-    return payload;
+  async getUser(@Currentuser() user: User): Promise<User> {
+    return user;
   }
 }

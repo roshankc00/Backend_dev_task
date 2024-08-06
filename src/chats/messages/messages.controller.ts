@@ -16,18 +16,22 @@ import { JWtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import { Currentuser } from 'src/common/decorators/currentUser.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { FindAllMessagesOfChat } from './dto/findAll-messages.query';
+import { ISuccessAndMessageResponse } from 'src/auth/interfaces/successMessage.response.interface';
+import { Message } from './entities/message.entity';
 
 @Controller('messages')
 export class MessagesController {
   constructor(private readonly messagesService: MessagesService) {}
 
   @Get('')
-  findAll(@Query() findAllMessagesOfChat: FindAllMessagesOfChat) {
+  findAll(
+    @Query() findAllMessagesOfChat: FindAllMessagesOfChat,
+  ): Promise<Message[]> {
     return this.messagesService.findAll(findAllMessagesOfChat);
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
+  findOne(@Param('id') id: string): Promise<Message> {
     return this.messagesService.findOne(id);
   }
 
@@ -37,13 +41,16 @@ export class MessagesController {
     @Param('id') id: string,
     @Body() updateMessageDto: UpdateMessageDto,
     @Currentuser() user: User,
-  ) {
+  ): Promise<ISuccessAndMessageResponse> {
     return this.messagesService.update(id, updateMessageDto, user);
   }
 
   @Delete(':id')
   @UseGuards(JWtAuthGuard)
-  remove(@Param('id') id: string, @Currentuser() user: User) {
+  remove(
+    @Param('id') id: string,
+    @Currentuser() user: User,
+  ): Promise<ISuccessAndMessageResponse> {
     return this.messagesService.remove(id, user);
   }
 }

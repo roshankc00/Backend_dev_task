@@ -7,6 +7,9 @@ import { UsersService } from 'src/users/users.service';
 import { User } from 'src/users/entities/user.entity';
 import { FindAllMessagesOfChat } from './dto/findAll-messages.query';
 import * as mongoose from 'mongoose';
+import { ISuccessAndMessageResponse } from 'src/auth/interfaces/successMessage.response.interface';
+import { MESSAGE_CONTANTS } from './contants/message.response';
+import { Message } from './entities/message.entity';
 @Injectable()
 export class MessagesService {
   constructor(
@@ -24,7 +27,7 @@ export class MessagesService {
     });
   }
 
-  findAll(findAllMessagesOfChat: FindAllMessagesOfChat) {
+  findAll(findAllMessagesOfChat: FindAllMessagesOfChat): Promise<Message[]> {
     const { chatId } = findAllMessagesOfChat;
 
     return this.messagesRepository.model
@@ -62,24 +65,36 @@ export class MessagesService {
       .exec();
   }
 
-  async findOne(id: string) {
-    const message = await this.messagesRepository.findOne({ _id: id });
+  async findOne(id: string): Promise<Message> {
+    return this.messagesRepository.findOne({ _id: id });
   }
 
-  async update(id: string, updateMessageDto: UpdateMessageDto, user: User) {
+  async update(
+    id: string,
+    updateMessageDto: UpdateMessageDto,
+    user: User,
+  ): Promise<ISuccessAndMessageResponse> {
     await this.validateMessageOwner(id, user);
-    return this.messagesRepository.findOneAndUpdate(
+    await this.messagesRepository.findOneAndUpdate(
       { _id: id },
       { $set: updateMessageDto },
     );
+    return {
+      success: true,
+      message: MESSAGE_CONTANTS.CREATED,
+    };
   }
 
-  async remove(id: string, user: User) {
+  async remove(id: string, user: User): Promise<ISuccessAndMessageResponse> {
     await this.validateMessageOwner(id, user);
-    return this.messagesRepository.findOneAndDelete({ _id: id });
+    await this.messagesRepository.findOneAndDelete({ _id: id });
+    return {
+      success: true,
+      message: MESSAGE_CONTANTS.DELETED,
+    };
   }
 
-  private async validateMessageOwner(id: string, user: User) {
+  private async validateMessageOwner(id: string, user: User): Promise<Message> {
     const message = await this.messagesRepository.findOne({ _id: id });
     if (message.sender._id.toString() === user._id.toString()) {
       return message;

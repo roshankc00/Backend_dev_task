@@ -5,9 +5,6 @@ import { User } from 'src/users/entities/user.entity';
 import * as mongoose from 'mongoose';
 @Schema({ versionKey: false })
 export class Chat extends AbstractEntity {
-  @Prop({ type: String, enum: CHAT_TYPE_ENUM })
-  chat_type: string;
-
   @Prop()
   name: string;
 

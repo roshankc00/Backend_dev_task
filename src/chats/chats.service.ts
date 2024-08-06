@@ -6,13 +6,19 @@ import * as mongoose from 'mongoose';
 import { UsersService } from '../users/users.service';
 import { AddUserToGroupDto } from './dto/add-userTo-group';
 import { User } from 'src/users/entities/user.entity';
+import { ISuccessAndMessageResponse } from 'src/auth/interfaces/successMessage.response.interface';
+import { CHATS_CONTANTS } from './constants/responseMessage.constant';
+import { Chat } from './entities/chat.entity';
 @Injectable()
 export class ChatsService {
   constructor(
     private readonly chatsRepository: ChatsRepository,
     private readonly usersService: UsersService,
   ) {}
-  async create(createChatDto: CreateChatDto, user: User) {
+  async create(
+    createChatDto: CreateChatDto,
+    user: User,
+  ): Promise<ISuccessAndMessageResponse> {
     if (user.email === createChatDto.email) {
       throw new BadRequestException('Not allowed');
     }
@@ -21,14 +27,17 @@ export class ChatsService {
       createChatDto.email,
     );
 
-    return this.chatsRepository.create({
-      chat_type: createChatDto.chat_type,
+    await this.chatsRepository.create({
       name: createChatDto.name,
       users: [user, anotherUser],
     });
+    return {
+      success: true,
+      message: CHATS_CONTANTS.CREATED,
+    };
   }
 
-  async findAll(user: User) {
+  async findAll(user: User): Promise<Chat[]> {
     const userId = new mongoose.Types.ObjectId(user._id);
     try {
       const chats = await this.chatsRepository.model
@@ -44,24 +53,37 @@ export class ChatsService {
     }
   }
 
-  findOne(id: string) {
+  findOne(id: string): Promise<Chat> {
     return this.chatsRepository.findOne({ _id: id });
   }
 
-  update(id: string, updateChatDto: UpdateChatDto) {
-    return this.chatsRepository.findOneAndUpdate(
+  async update(
+    id: string,
+    updateChatDto: UpdateChatDto,
+  ): Promise<ISuccessAndMessageResponse> {
+    await this.chatsRepository.findOneAndUpdate(
       { _id: id },
       {
         $set: updateChatDto,
       },
     );
+    return {
+      success: true,
+      message: CHATS_CONTANTS.UPDATED,
+    };
   }
 
-  remove(id: string) {
-    return this.chatsRepository.findOneAndDelete({ _id: id });
+  async remove(id: string): Promise<ISuccessAndMessageResponse> {
+    await this.chatsRepository.findOneAndDelete({ _id: id });
+    return {
+      success: true,
+      message: CHATS_CONTANTS.DELETED,
+    };
   }
 
-  async addUsertoGroup(addUserToGroupDto: AddUserToGroupDto) {
+  async addUsertoGroup(
+    addUserToGroupDto: AddUserToGroupDto,
+  ): Promise<ISuccessAndMessageResponse> {
     const user = await this.usersService.getUserWithEmail(
       addUserToGroupDto.email,
     );
@@ -85,9 +107,13 @@ export class ChatsService {
 
     chat.users.push(user);
 
-    return this.chatsRepository.findOneAndUpdate(
+    await this.chatsRepository.findOneAndUpdate(
       { _id: chat._id },
       { $set: { users: chat.users } },
     );
+    return {
+      success: true,
+      message: CHATS_CONTANTS.USED_ADDED,
+    };
   }
 }
