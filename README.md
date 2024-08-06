@@ -36,9 +36,9 @@ This is a NestJS application designed to [brief description of what the applicat
 
 Before you begin, ensure you have met the following requirements:
 
-- Node.js (>= 14.x)
-- npm (>= 6.x) or yarn (>= 1.x)
-- MongoDB (if using MongoDB as your database)
+- Node.js (>= 17.x)
+- npm (>= 10.x) or pnpm (>= 8.x)
+- MongoDB
 
 ## Installation
 
@@ -57,10 +57,10 @@ Before you begin, ensure you have met the following requirements:
    npm install
    ```
 
-   Using yarn:
+   Using pnpm:
 
    ```sh
-   yarn install
+   pnpm install
    ```
 
 3. **Set up environment variables:**
@@ -81,10 +81,10 @@ Before you begin, ensure you have met the following requirements:
    npm run start:dev
    ```
 
-   Using yarn:
+   Using pnpm:
 
    ```sh
-   yarn start:dev
+   pnpm start:dev
    ```
 
 2. **Production mode:**
@@ -95,10 +95,10 @@ Before you begin, ensure you have met the following requirements:
    npm run start:prod
    ```
 
-   Using yarn:
+   Using pnpm:
 
    ```sh
-   yarn start:prod
+   pnpm start:prod
    ```
 
 3. **Watch mode:**
@@ -109,8 +109,8 @@ Before you begin, ensure you have met the following requirements:
    npm run start:watch
    ```
 
-   Using yarn:
+   Using pnpm:
 
    ```sh
-   yarn start:watch
+   pnpm start:watch
    ```
