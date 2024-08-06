@@ -1,5 +1,4 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { DatabaseModule } from './common/database/database.module';
 import { CustomLoggerModule } from './common/logger/logger.module';
@@ -26,11 +25,19 @@ import { BullModule } from '@nestjs/bull';
     ConfigModule.forRoot({
       isGlobal: true,
       validationSchema: Joi.object({
-        PORT: Joi.number().required(),
         MONGO_URI: Joi.string().required(),
+        PORT: Joi.number().required(),
         JWT_SECRET: Joi.string().required(),
         JWT_EXPIRATION: Joi.number().required(),
-        REDIS_URI: Joi.string().required(),
+        SMTP_HOST: Joi.string().required(),
+        SMTP_PORT: Joi.number().required(),
+        SMTP_MAIL: Joi.string().required(),
+        SMTP_PASSWORD: Joi.string().required(),
+        ACTIVATION_SECRET: Joi.string().required(),
+        EMAIL_VERIFICATION_EXPIRATION_MINUTE: Joi.number().required(),
+        REDIS_HOST: Joi.string().required(),
+        CLIENT_URL: Joi.string().required(),
+        REDIS_PORT: Joi.string().required(),
       }),
     }),
     DatabaseModule,
@@ -39,7 +46,7 @@ import { BullModule } from '@nestjs/bull';
     AuthModule,
     ChatsModule,
   ],
-  controllers: [AppController],
+  controllers: [],
   providers: [AppService],
 })
 export class AppModule {}

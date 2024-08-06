@@ -86,7 +86,7 @@ export class MessagesService {
   }
 
   async remove(id: string, user: User): Promise<ISuccessAndMessageResponse> {
-    await this.validateMessageOwner(id, user);
+    // await this.validateMessageOwner(id, user);
     await this.messagesRepository.findOneAndDelete({ _id: id });
     return {
       success: true,

@@ -62,10 +62,14 @@ export class UsersService {
     ) as { email: string };
 
     if (payload?.email) {
-      return await this.usersRepository.findOneAndUpdate(
+      await this.usersRepository.findOneAndUpdate(
         { email: payload.email },
         { $set: { isVerified: true } },
       );
+      return {
+        success: true,
+        message: USER_CONTANTS.VERIRIFIED,
+      };
     } else {
       throw new BadRequestException();
     }

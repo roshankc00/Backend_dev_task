@@ -1,6 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { AbstractEntity } from 'src/common/database/abstract.entity';
-import { CHAT_TYPE_ENUM } from 'src/common/enums/chat.type';
 import { User } from 'src/users/entities/user.entity';
 import * as mongoose from 'mongoose';
 @Schema({ versionKey: false })
