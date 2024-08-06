@@ -13,20 +13,26 @@ import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { JWtAuthGuard } from 'src/auth/guards/jwt.auth.guard';
 import { Currentuser } from 'src/common/decorators/currentUser.decorator';
+import { AddUserToGroupDto } from './dto/add-userTo-group';
+import { User } from 'src/users/entities/user.entity';
 
 @Controller('chats')
 export class ChatsController {
   constructor(private readonly chatsService: ChatsService) {}
 
   @Post()
-  create(@Body() createChatDto: CreateChatDto) {
-    return this.chatsService.create(createChatDto);
+  @UseGuards(JWtAuthGuard)
+  create(
+    @Body() createChatDto: CreateChatDto,
+    @Currentuser() user: User,
+  ) {
+    return this.chatsService.create(createChatDto, user);
   }
 
   @Get('mine/all')
   @UseGuards(JWtAuthGuard)
-  findAll(@Currentuser() payload: TokenPayload) {
-    return this.chatsService.findAll(payload);
+  findAll(@Currentuser() user: User) {
+    return this.chatsService.findAll(user);
   }
 
   @Get(':id')
@@ -42,5 +48,10 @@ export class ChatsController {
   @Delete(':id')
   remove(@Param('id') id: string) {
     return this.chatsService.remove(id);
+  }
+
+  @Patch('add/user-to-group')
+  addUsertoGroup(@Body() addUserToGroupDto: AddUserToGroupDto) {
+    return this.chatsService.addUsertoGroup(addUserToGroupDto);
   }
 }

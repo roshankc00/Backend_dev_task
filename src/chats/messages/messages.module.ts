@@ -7,11 +7,13 @@ import { Message, MessageSchema } from './entities/message.entity';
 import { SocketGatewayGateway } from './message.gateway';
 import { Emitters } from './event-emitter';
 import { ChatsModule } from '../chats.module';
+import { UsersModule } from 'src/users/users.module';
 
 @Module({
   imports: [
     DatabaseModule.forFeature([{ name: Message.name, schema: MessageSchema }]),
     forwardRef(() => ChatsModule),
+    UsersModule,
   ],
   controllers: [MessagesController],
   providers: [

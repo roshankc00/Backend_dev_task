@@ -37,7 +37,7 @@ export class UsersService {
       ...createUserDto,
       password,
       role: USER_ROLE_ENUM.USER,
-      isVerfied: false,
+      isVerified: false,
     });
     const { activationtoken } = this.createActivationToken(user);
     await this.emailService.sendVerificationEmail({
@@ -54,7 +54,7 @@ export class UsersService {
     };
   }
 
-  async verifyUserEmailEmail(req: Request) {
+  async verifyUserEmail(req: Request) {
     const token = req.params.token;
     const payload = jwt.verify(
       token,
@@ -64,7 +64,7 @@ export class UsersService {
     if (payload?.email) {
       return await this.usersRepository.findOneAndUpdate(
         { email: payload.email },
-        { $set: { isVerfied: true } },
+        { $set: { isVerified: true } },
       );
     } else {
       throw new BadRequestException();
@@ -106,7 +106,7 @@ export class UsersService {
 
   async validate(email: string, password: string) {
     const userexist = await this.usersRepository.model
-      .findOne({ email })
+      .findOne({ email, isVerified: true })
       .select('name email password role _id')
       .exec();
     if (!userexist) {

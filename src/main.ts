@@ -13,6 +13,7 @@ async function bootstrap() {
     }),
   );
   app.setBaseViewsDir(join(__dirname, '..', 'server/email-templates'));
+  app.enableCors();
   app.setGlobalPrefix('api/v1');
   app.useLogger(app.get(Logger));
   const configService = app.get(ConfigService);

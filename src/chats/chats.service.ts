@@ -2,49 +2,46 @@ import { BadRequestException, Injectable } from '@nestjs/common';
 import { CreateChatDto } from './dto/create-chat.dto';
 import { UpdateChatDto } from './dto/update-chat.dto';
 import { ChatsRepository } from './repositories/chat.repository';
-import { Schema as MongooseSchema, Types } from 'mongoose';
+import * as mongoose from 'mongoose';
 import { UsersService } from '../users/users.service';
 import { AddUserToGroupDto } from './dto/add-userTo-group';
+import { User } from 'src/users/entities/user.entity';
 @Injectable()
 export class ChatsService {
   constructor(
     private readonly chatsRepository: ChatsRepository,
     private readonly usersService: UsersService,
   ) {}
-  create(createChatDto: CreateChatDto) {
+  async create(createChatDto: CreateChatDto, user: User) {
+    if (user.email === createChatDto.email) {
+      throw new BadRequestException('Not allowed');
+    }
+
+    const anotherUser = await this.usersService.getUserWithEmail(
+      createChatDto.email,
+    );
+
     return this.chatsRepository.create({
-      ...createChatDto,
-      users: [],
+      chat_type: createChatDto.chat_type,
+      name: createChatDto.name,
+      users: [user, anotherUser],
     });
   }
 
-  findAll(payload: TokenPayload) {
-    const userId = payload._id;
-    return this.chatsRepository.model
-      .aggregate([
-        {
-          $match: {
-            users: new MongooseSchema.Types.ObjectId(userId),
-          },
-        },
-        {
-          $lookup: {
-            from: 'users',
-            localField: 'users',
-            foreignField: '_id',
-            as: 'userDetails',
-          },
-        },
-        {
-          $project: {
-            _id: 1,
-            name: 1,
-            chat_type: 1,
-            userDetails: 1,
-          },
-        },
-      ])
-      .exec();
+  async findAll(user: User) {
+    const userId = new mongoose.Types.ObjectId(user._id);
+    try {
+      const chats = await this.chatsRepository.model
+        .find({
+          users: userId,
+        })
+        .exec();
+
+      return chats;
+    } catch (error) {
+      console.error('Error fetching chats for user:', error);
+      throw error;
+    }
   }
 
   findOne(id: string) {
@@ -68,24 +65,29 @@ export class ChatsService {
     const user = await this.usersService.getUserWithEmail(
       addUserToGroupDto.email,
     );
-    const chats = await this.chatsRepository.findOne({
+    const chat = await this.chatsRepository.findOne({
       _id: addUserToGroupDto.chatId,
     });
-    if (!chats || !user) {
-      throw new BadRequestException('invalid');
+
+    if (!chat || !user) {
+      throw new BadRequestException('Invalid chat or user');
     }
 
-    const userId = new MongooseSchema.Types.ObjectId(user._id.toString());
+    const userId = new mongoose.Types.ObjectId(user._id);
 
-    if (chats.users.some((user) => user.toString() === userId.toString())) {
+    if (
+      chat.users.some(
+        (existingUser) => existingUser.toString() === userId.toString(),
+      )
+    ) {
       throw new BadRequestException('User already exists in the group');
     }
 
-    chats.users.push(userId);
+    chat.users.push(user);
 
     return this.chatsRepository.findOneAndUpdate(
-      { _id: chats._id },
-      { $set: { users: chats.users } },
+      { _id: chat._id },
+      { $set: { users: chat.users } },
     );
   }
 }

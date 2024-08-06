@@ -16,6 +16,7 @@ import { CreateMessageDto } from './dto/create-message.dto';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Redis } from 'ioredis';
 import { ConfigService } from '@nestjs/config';
+import * as jwt from 'jsonwebtoken';
 
 @WebSocketGateway({
   cors: '*',
@@ -45,7 +46,18 @@ export class SocketGatewayGateway
     });
   }
 
-  handleConnection(client: Socket, ...args: any[]) {
+  handleConnection(socket: Socket, ...args: any[]) {
+    const token = socket.handshake.auth.token;
+    if (token) {
+      try {
+        const decoded = jwt.verify(token, this.configService.get('JWT_SECRET'));
+        socket.data.user = decoded;
+      } catch (error) {
+        socket.disconnect();
+      }
+    } else {
+      socket.disconnect();
+    }
     console.log('client connected');
   }
   handleDisconnect(client: Socket, ...args: any[]) {
@@ -70,16 +82,22 @@ export class SocketGatewayGateway
 
   @SubscribeMessage('send_message')
   async handleMessage(
-    @MessageBody() { chatId, content, senderId }: CreateMessageDto,
+    @MessageBody() { chatId, content }: CreateMessageDto,
     @ConnectedSocket() socket: Socket,
   ) {
-    this.eventEmitter.emit('message_create', { chatId, content, senderId });
+    const user = socket.data.user;
+    this.eventEmitter.emit('message_create', {
+      chatId,
+      content,
+      senderId: user._id,
+    });
+
     await this.publisher.publish(
       'chat_messages',
       JSON.stringify({
         chatId,
         content,
-        senderId,
+        user,
       }),
     );
   }
