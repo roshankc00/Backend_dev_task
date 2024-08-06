@@ -16,8 +16,8 @@
 - Nest js
 - MongoDb (Abstract Layer)
 - Bull Mq for queuing Email Notifications
-- Redis For scaling web socket server with pubsub pubsub model
-- EventPattern communication
+- Redis For scaling web socket server with pubsub model
+- EventEmitters
 - Websocket(scalable)
 
 # To Run the App
